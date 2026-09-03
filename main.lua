@@ -5,7 +5,7 @@ local ClaseBotiquin = require("botiquin")
 
 JuegoTerminado = false
 Tiempo = 0
-TiempoParaGanar = 11
+TiempoParaGanar = 21
 Gane = false
 SonidoGolpe = nil
 
@@ -46,7 +46,7 @@ function love.update(dt)
 
         -- IA del enemigo: delegada al metodo Actualizar de la clase Enemigo
         local distanciaMinima = (Jugador.ancho + Enemigo.ancho) / 2
-        Enemigo:Actualizar(Jugador.x, Jugador.y, distanciaMinima, dt)
+        Enemigo:Actualizar(Jugador.x, Jugador.y, Jugador.ancho, dt)
 
         -- Colision jugador-enemigo: resta vida, activa flash rojo y sonido de golpe
         if ComprobarColision(Jugador, Enemigo) then
@@ -84,7 +84,7 @@ function love.draw()
     Botiquin:Dibujar()
 
     -- HUD: vida y tiempo restante
-    love.graphics.print("Vida: " .. (Jugador.vida), 10, 10)
+    love.graphics.print("Vida: " .. math.floor(Jugador.vida), 10, 10)
     love.graphics.print("Resiste: " .. math.floor(math.max(TiempoParaGanar - Tiempo, 0)), 350, 10)
 
     -- Mensaje de fin de juego (victoria o derrota)
