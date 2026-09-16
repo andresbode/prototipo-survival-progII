@@ -2,6 +2,10 @@
 local ClaseJugador = require("jugador")
 local ClaseEnemigo = require("enemigo")
 local ClaseBotiquin = require("botiquin")
+local ClaseMapa = require("mapa")
+
+Mapa = nil
+Mundo = nil
 
 JuegoTerminado = false
 Tiempo = 0
@@ -17,12 +21,13 @@ Botiquin = nil
 function love.load()
     love.graphics.setDefaultFilter("nearest", "nearest")
 
-    Jugador = ClaseJugador.Nuevo(400, 300, "assets/personaje.png", 200, 2)
+    Mapa, Mundo = ClaseMapa.Cargar("assets/mapa/mapaPrueba.lua")
 
-    -- Se crean 3 enemigos en distintas posiciones, todos guardados en la lista Enemigos
+    Jugador = ClaseJugador.Nuevo(400, 300, "assets/personaje1.png", 200, 2, Mundo) -- le pasamos Mundo
+
     Enemigos[1] = ClaseEnemigo.Nuevo(100, 100, "assets/enemigo.png", 120, 2)
-    Enemigos[2] = ClaseEnemigo.Nuevo(600, 150, "assets/enemigo.png", 60, 2)
-    Enemigos[3] = ClaseEnemigo.Nuevo(300, 450, "assets/enemigo.png", 100, 2)
+    Enemigos[2] = ClaseEnemigo.Nuevo(600, 150, "assets/enemigo.png", 120, 2)
+    Enemigos[3] = ClaseEnemigo.Nuevo(300, 450, "assets/enemigo.png", 120, 2)
 
     Botiquin = ClaseBotiquin.Nuevo("assets/botiquin.png", 1, 30)
 
@@ -45,7 +50,8 @@ end
 function love.update(dt)
     if not JuegoTerminado then
         Jugador:Actualizar(dt)
-
+        Mapa:update(dt)
+          Mundo:update(dt) -- actualiza la simulacion fisica
         -- Recorremos todos los enemigos de la lista con un for, para actualizar a cada uno
         for i, enemigo in ipairs(Enemigos) do
             enemigo:Actualizar(Jugador.x, Jugador.y, Jugador.ancho, dt)
@@ -78,12 +84,14 @@ end
 
 -- =================== RENDERIZADO ===================
 function love.draw()
-    Jugador:Dibujar()
 
+    ClaseMapa.DibujarSuelo(Mapa)
+    Jugador:Dibujar()
     -- Recorremos todos los enemigos de la lista con un for, para dibujar a cada uno
     for i, enemigo in ipairs(Enemigos) do
         enemigo:Dibujar()
     end
+    ClaseMapa.DibujarArboles(Mapa)
 
     Botiquin:Dibujar()
 
