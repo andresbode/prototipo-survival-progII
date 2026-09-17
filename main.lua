@@ -3,9 +3,11 @@ local ClaseJugador = require("jugador")
 local ClaseEnemigo = require("enemigo")
 local ClaseBotiquin = require("botiquin")
 local ClaseMapa = require("mapa")
+local Camera = require("librerias.hump-master.camera")
 
 Mapa = nil
 Mundo = nil
+Camara = nil
 
 JuegoTerminado = false
 Tiempo = 0
@@ -24,6 +26,8 @@ function love.load()
     Mapa, Mundo = ClaseMapa.Cargar("assets/mapa/mapaPrueba.lua")
 
     Jugador = ClaseJugador.Nuevo(400, 300, "assets/personaje1.png", 200, 2, Mundo) -- le pasamos Mundo
+
+    Camara = Camera(Jugador.x + Jugador.ancho / 2, Jugador.y + Jugador.alto / 2)
 
     Enemigos[1] = ClaseEnemigo.Nuevo(100, 100, "assets/enemigo.png", 120, 2)
     Enemigos[2] = ClaseEnemigo.Nuevo(600, 150, "assets/enemigo.png", 120, 2)
@@ -50,8 +54,9 @@ end
 function love.update(dt)
     if not JuegoTerminado then
         Jugador:Actualizar(dt)
+        Camara:lookAt(Jugador.x + Jugador.ancho / 2, Jugador.y + Jugador.alto / 2)
         Mapa:update(dt)
-          Mundo:update(dt) -- actualiza la simulacion fisica
+
         -- Recorremos todos los enemigos de la lista con un for, para actualizar a cada uno
         for i, enemigo in ipairs(Enemigos) do
             enemigo:Actualizar(Jugador.x, Jugador.y, Jugador.ancho, dt)
@@ -84,17 +89,19 @@ end
 
 -- =================== RENDERIZADO ===================
 function love.draw()
+    Camara:attach()
 
     ClaseMapa.DibujarSuelo(Mapa)
     Jugador:Dibujar()
-    -- Recorremos todos los enemigos de la lista con un for, para dibujar a cada uno
     for i, enemigo in ipairs(Enemigos) do
         enemigo:Dibujar()
     end
+    Botiquin:Dibujar()
     ClaseMapa.DibujarArboles(Mapa)
 
-    Botiquin:Dibujar()
+    Camara:detach()
 
+    -- HUD: se dibuja DESPUES de detach, para que quede fijo en pantalla
     love.graphics.print("Vida: " .. math.floor(Jugador.vida), 10, 10)
     love.graphics.print("Resiste: " .. math.floor(math.max(TiempoParaGanar - Tiempo, 0)), 350, 10)
 
