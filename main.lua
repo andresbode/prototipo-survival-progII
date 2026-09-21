@@ -32,9 +32,9 @@ function love.load()
 
     Camara = Camera(Jugador.x + Jugador.ancho / 2, Jugador.y + Jugador.alto / 2)
 
-    Enemigos[1] = ClaseEnemigo.Nuevo(100, 100, "assets/animaciones/enemigo.png", 120, 2)
-    Enemigos[2] = ClaseEnemigo.Nuevo(600, 150, "assets/animaciones/enemigo.png", 120, 2)
-    Enemigos[3] = ClaseEnemigo.Nuevo(300, 450, "assets/animaciones/enemigo.png", 120, 2)
+    Enemigos[1] = ClaseEnemigo.Nuevo(love.math.random(50, 900), love.math.random(50, 600), "assets/animaciones/enemigo.png", 120, 2)
+    Enemigos[2] = ClaseEnemigo.Nuevo(love.math.random(50, 900), love.math.random(50, 600), "assets/animaciones/enemigo.png", 120, 2)
+    Enemigos[3] = ClaseEnemigo.Nuevo(love.math.random(50, 900), love.math.random(50, 600), "assets/animaciones/enemigo.png", 120, 2)
 
     Botiquin = ClaseBotiquin.Nuevo("assets/botiquin.png", 1, 30)
 

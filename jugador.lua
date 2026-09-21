@@ -13,8 +13,8 @@ function Jugador.Nuevo(x, y, img, velocidad, escala, mundo)
     o.vida = 1000
     o.flashTiempo = 0
     o.imagen = love.graphics.newImage(img)
-    o.ancho = o.imagen:getWidth() * escala
-    o.alto = o.imagen:getHeight() * escala
+    o.ancho = 17 * escala
+    o.alto = 22 * escala
     o.mundo = mundo
 
     -- Animaciones de caminar en las 4 direcciones

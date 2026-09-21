@@ -11,8 +11,8 @@ function Enemigo.Nuevo(x, y, img, velocidad, escala)
     o.velocidad = velocidad
     o.escala = escala
     o.imagen = love.graphics.newImage(img)
-    o.ancho = o.imagen:getWidth() * escala
-    o.alto = o.imagen:getHeight() * escala
+    o.ancho = 17 * escala
+    o.alto = 22 * escala
 
     o.estado = "patrulla"
     o.radioDeteccion = 250
