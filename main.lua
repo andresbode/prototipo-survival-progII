@@ -11,8 +11,11 @@ Camara = nil
 
 JuegoTerminado = false
 Tiempo = 0
-TiempoParaGanar = 11
+TiempoParaGanar = 1100
 Gane = false
+
+--Sonidos
+musica = nil
 SonidoGolpe = nil
 
 Jugador = nil
@@ -25,17 +28,22 @@ function love.load()
 
     Mapa, Mundo = ClaseMapa.Cargar("assets/mapa/mapaPrueba.lua")
 
-    Jugador = ClaseJugador.Nuevo(400, 300, "assets/personaje1.png", 200, 2, Mundo) -- le pasamos Mundo
+    Jugador = ClaseJugador.Nuevo(400, 300, "assets/animaciones/personaje1.png", 200, 2, Mundo) -- le pasamos Mundo
 
     Camara = Camera(Jugador.x + Jugador.ancho / 2, Jugador.y + Jugador.alto / 2)
 
-    Enemigos[1] = ClaseEnemigo.Nuevo(100, 100, "assets/enemigo.png", 120, 2)
-    Enemigos[2] = ClaseEnemigo.Nuevo(600, 150, "assets/enemigo.png", 120, 2)
-    Enemigos[3] = ClaseEnemigo.Nuevo(300, 450, "assets/enemigo.png", 120, 2)
+    Enemigos[1] = ClaseEnemigo.Nuevo(100, 100, "assets/animaciones/enemigo.png", 120, 2)
+    Enemigos[2] = ClaseEnemigo.Nuevo(600, 150, "assets/animaciones/enemigo.png", 120, 2)
+    Enemigos[3] = ClaseEnemigo.Nuevo(300, 450, "assets/animaciones/enemigo.png", 120, 2)
 
     Botiquin = ClaseBotiquin.Nuevo("assets/botiquin.png", 1, 30)
 
-    SonidoGolpe = love.audio.newSource("assets/efectoGolpe.mp3", "static")
+    --Sonidos
+    musica = love.audio.newSource("assets/sonidos/musica.mp3", "stream")
+    musica:setLooping(true)
+    love.audio.play(musica)
+    musica:setVolume(0.50)
+    SonidoGolpe = love.audio.newSource("assets/sonidos/efectoGolpe.mp3", "static")
 end
 
 -- =================== INTERACCION ===================

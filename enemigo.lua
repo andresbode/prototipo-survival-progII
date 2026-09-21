@@ -1,6 +1,7 @@
 -- =================== "CLASE" ENEMIGO ===================
 local Enemigo = {}
 Enemigo.__index = Enemigo
+local ClaseAnimacion = require("animacion")
 
 -- =================== INICIALIZACION ===================
 function Enemigo.Nuevo(x, y, img, velocidad, escala)
@@ -17,13 +18,20 @@ function Enemigo.Nuevo(x, y, img, velocidad, escala)
     o.radioDeteccion = 250
     o.radioAtaque = 0
 
-    -- Puntos de patrulla: A es la posicion inicial, B es un punto random cercano
     o.puntoA = { x = x, y = y }
     o.puntoB = {
         x = x + love.math.random(-150, 150),
         y = y + love.math.random(-150, 150)
     }
-    o.destino = o.puntoB -- arranca yendo hacia B
+    o.destino = o.puntoB
+
+    o.animIzquierda = ClaseAnimacion.Nueva(love.graphics.newImage("assets/animaciones/caminarIzquierdaEnemigo.png"), 17, 23, 4, 0.15)
+    o.animDerecha   = ClaseAnimacion.Nueva(love.graphics.newImage("assets/animaciones/caminarDerechaEnemigo.png"), 17, 23, 4, 0.15)
+    o.animAbajo     = ClaseAnimacion.Nueva(love.graphics.newImage("assets/animaciones/caminarAbajoEnemigo.png"), 20, 22, 4, 0.15)
+    o.animArriba    = ClaseAnimacion.Nueva(love.graphics.newImage("assets/animaciones/caminarArribaEnemigo.png"), 20, 22, 4, 0.15)
+
+    o.animando = false
+    o.animacionActual = o.animAbajo
 
     return o
 end
@@ -35,8 +43,8 @@ function Enemigo:Actualizar(jugadorX, jugadorY, jugadorAncho, dt)
     local distancia = math.sqrt(dx * dx + dy * dy)
 
     self.radioAtaque = (jugadorAncho + self.ancho) / 2
+    self.animando = false
 
-    -- Transicion de estados segun la distancia al jugador
     if distancia <= self.radioAtaque then
         self.estado = "ataca"
     elseif distancia <= self.radioDeteccion then
@@ -45,10 +53,8 @@ function Enemigo:Actualizar(jugadorX, jugadorY, jugadorAncho, dt)
         self.estado = "patrulla"
     end
 
-    -- Comportamiento segun el estado actual
     if self.estado == "persigue" then
-        self.x = self.x + (dx / distancia) * self.velocidad * dt
-        self.y = self.y + (dy / distancia) * self.velocidad * dt
+        self:MoverHacia(dx, dy, distancia, self.velocidad, dt)
 
     elseif self.estado == "ataca" then
         -- Se queda quieto, el daño lo maneja la colision en main.lua
@@ -59,10 +65,8 @@ function Enemigo:Actualizar(jugadorX, jugadorY, jugadorAncho, dt)
         local distPatrulla = math.sqrt(dxPatrulla * dxPatrulla + dyPatrulla * dyPatrulla)
 
         if distPatrulla > 5 then
-            self.x = self.x + (dxPatrulla / distPatrulla) * (self.velocidad / 2) * dt
-            self.y = self.y + (dyPatrulla / distPatrulla) * (self.velocidad / 2) * dt
+            self:MoverHacia(dxPatrulla, dyPatrulla, distPatrulla, self.velocidad / 2, dt)
         else
-            -- Llego al destino, cambia al otro punto
             if self.destino == self.puntoA then
                 self.destino = self.puntoB
             else
@@ -70,11 +74,41 @@ function Enemigo:Actualizar(jugadorX, jugadorY, jugadorAncho, dt)
             end
         end
     end
+
+    if self.animando then
+        self.animacionActual:Actualizar(dt)
+    end
+end
+
+-- =================== MOVER EN DIAGONAL LIBRE, ELIGIENDO ANIMACION SEGUN EJE DOMINANTE ===================
+function Enemigo:MoverHacia(dx, dy, distancia, velocidad, dt)
+    self.animando = true
+
+    self.x = self.x + (dx / distancia) * velocidad * dt
+    self.y = self.y + (dy / distancia) * velocidad * dt
+
+    if math.abs(dx) > math.abs(dy) then
+        if dx > 0 then
+            self.animacionActual = self.animDerecha
+        else
+            self.animacionActual = self.animIzquierda
+        end
+    else
+        if dy > 0 then
+            self.animacionActual = self.animAbajo
+        else
+            self.animacionActual = self.animArriba
+        end
+    end
 end
 
 -- =================== RENDERIZADO ===================
 function Enemigo:Dibujar()
-    love.graphics.draw(self.imagen, self.x, self.y, 0, self.escala, self.escala)
+    if self.animando then
+        self.animacionActual:Dibujar(self.x, self.y, self.escala)
+    else
+        love.graphics.draw(self.imagen, self.x, self.y, 0, self.escala, self.escala)
+    end
 end
 
 -- =================== EXPORTAR ===================

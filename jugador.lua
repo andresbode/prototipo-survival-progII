@@ -1,6 +1,7 @@
 -- =================== "CLASE" JUGADOR ===================
 local Jugador = {}
 Jugador.__index = Jugador
+local ClaseAnimacion = require("animacion")
 
 -- =================== INICIALIZACION ===================
 function Jugador.Nuevo(x, y, img, velocidad, escala, mundo)
@@ -9,14 +10,22 @@ function Jugador.Nuevo(x, y, img, velocidad, escala, mundo)
     o.y = y
     o.velocidad = velocidad
     o.escala = escala
-    o.vida = 100
+    o.vida = 1000
     o.flashTiempo = 0
     o.imagen = love.graphics.newImage(img)
     o.ancho = o.imagen:getWidth() * escala
     o.alto = o.imagen:getHeight() * escala
-    o.mundo = mundo -- guardamos referencia al mundo de Bump
+    o.mundo = mundo
 
-    -- Registramos al jugador como un objeto mas dentro del mundo de colisiones
+    -- Animaciones de caminar en las 4 direcciones
+    o.animIzquierda = ClaseAnimacion.Nueva(love.graphics.newImage("assets/animaciones/caminarIzquierda.png"), 17, 23, 4, 0.15)
+    o.animDerecha   = ClaseAnimacion.Nueva(love.graphics.newImage("assets/animaciones/caminarDerecha.png"), 17, 23, 4, 0.15)
+    o.animAbajo     = ClaseAnimacion.Nueva(love.graphics.newImage("assets/animaciones/caminarAbajo.png"), 20, 22, 4, 0.15)
+    o.animArriba    = ClaseAnimacion.Nueva(love.graphics.newImage("assets/animaciones/caminarArriba.png"), 20, 22, 4, 0.15)
+
+    o.animando = false
+    o.animacionActual = nil -- cual de las 4 animaciones se esta mostrando ahora
+
     o.mundo:add(o, o.x, o.y, o.ancho, o.alto)
 
     return o
@@ -25,16 +34,33 @@ end
 -- =================== ACTUALIZAR ===================
 function Jugador:Actualizar(dt)
     local moverX, moverY = 0, 0
+    self.animando = false
 
-    if love.keyboard.isDown("w") then moverY = moverY - self.velocidad * dt end
-    if love.keyboard.isDown("s") then moverY = moverY + self.velocidad * dt end
-    if love.keyboard.isDown("a") then moverX = moverX - self.velocidad * dt end
-    if love.keyboard.isDown("d") then moverX = moverX + self.velocidad * dt end
+    if love.keyboard.isDown("w") then
+        moverY = -self.velocidad * dt
+        self.animando = true
+        self.animacionActual = self.animArriba
+    elseif love.keyboard.isDown("s") then
+        moverY = self.velocidad * dt
+        self.animando = true
+        self.animacionActual = self.animAbajo
+    elseif love.keyboard.isDown("a") then
+        moverX = -self.velocidad * dt
+        self.animando = true
+        self.animacionActual = self.animIzquierda
+    elseif love.keyboard.isDown("d") then
+        moverX = self.velocidad * dt
+        self.animando = true
+        self.animacionActual = self.animDerecha
+    end
+
+    if self.animando then
+        self.animacionActual:Actualizar(dt)
+    end
 
     local destinoX = self.x + moverX
     local destinoY = self.y + moverY
 
-    -- Le preguntamos a Bump: si me muevo ahi, cual es mi posicion real (corregida si hay colision)
     local x, y = self.mundo:move(self, destinoX, destinoY)
     self.x = x
     self.y = y
@@ -64,7 +90,13 @@ function Jugador:Dibujar()
     else
         love.graphics.setColor(1, 1, 1)
     end
-    love.graphics.draw(self.imagen, self.x, self.y, 0, self.escala, self.escala)
+
+    if self.animando then
+        self.animacionActual:Dibujar(self.x, self.y, self.escala)
+    else
+        love.graphics.draw(self.imagen, self.x, self.y, 0, self.escala, self.escala)
+    end
+
     love.graphics.setColor(1, 1, 1)
 end
 
