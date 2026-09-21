@@ -10,7 +10,7 @@ function Jugador.Nuevo(x, y, img, velocidad, escala, mundo)
     o.y = y
     o.velocidad = velocidad
     o.escala = escala
-    o.vida = 1000
+    o.vida = 100
     o.flashTiempo = 0
     o.imagen = love.graphics.newImage(img)
     o.ancho = 17 * escala
