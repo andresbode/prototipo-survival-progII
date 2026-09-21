@@ -11,7 +11,7 @@ Camara = nil
 
 JuegoTerminado = false
 Tiempo = 0
-TiempoParaGanar = 1100
+TiempoParaGanar = 11
 Gane = false
 
 --Sonidos
