@@ -1,34 +1,25 @@
--- =================== "CLASE" ANIMACION ===================
-local Animacion = {}
-Animacion.__index = Animacion
+local Class = require("librerias.hump-master.class")
 
--- =================== INICIALIZACION ===================
--- imagen: la imagen ya cargada (love.graphics.newImage)
--- anchoFrame, altoFrame: tamaño de un solo frame dentro del spritesheet
--- cantidadFrames: cuantos frames tiene la animacion
--- duracionFrame: cuanto tiempo (segundos) se muestra cada frame antes de pasar al siguiente
-function Animacion.Nueva(imagen, anchoFrame, altoFrame, cantidadFrames, duracionFrame)
-    local o = setmetatable({}, Animacion)
-    o.imagen = imagen
-    o.anchoFrame = anchoFrame
-    o.altoFrame = altoFrame
-    o.cantidadFrames = cantidadFrames
-    o.duracionFrame = duracionFrame
+local Animacion = Class{}
 
-    o.frameActual = 1
-    o.tiempoAcumulado = 0
+function Animacion:init(imagen, anchoFrame, altoFrame, cantidadFrames, duracionFrame)
+    self.imagen = imagen
+    self.anchoFrame = anchoFrame
+    self.altoFrame = altoFrame
+    self.cantidadFrames = cantidadFrames
+    self.duracionFrame = duracionFrame
 
-    -- Generamos un quad (recorte) por cada frame del spritesheet
-    o.quads = {}
+    self.frameActual = 1
+    self.tiempoAcumulado = 0
+
+    self.quads = {}
     for i = 0, cantidadFrames - 1 do
-        o.quads[i + 1] = love.graphics.newQuad(
-            i * anchoFrame, 0, -- posicion x,y del recorte dentro de la imagen
-            anchoFrame, altoFrame, -- tamaño del recorte
-            imagen:getWidth(), imagen:getHeight() -- tamaño total de la imagen 
+        self.quads[i + 1] = love.graphics.newQuad(
+            i * anchoFrame, 0,
+            anchoFrame, altoFrame,
+            imagen:getWidth(), imagen:getHeight()
         )
     end
-
-    return o
 end
 
 -- =================== ACTUALIZAR ===================

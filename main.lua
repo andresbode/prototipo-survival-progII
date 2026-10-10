@@ -4,6 +4,7 @@ local ClaseEnemigo = require("enemigo")
 local ClaseBotiquin = require("botiquin")
 local ClaseMapa = require("mapa")
 local Camera = require("librerias.hump-master.camera")
+local Signal = require("librerias.hump-master.signal")
 
 Mapa = nil
 Mundo = nil
@@ -28,15 +29,15 @@ function love.load()
 
     Mapa, Mundo = ClaseMapa.Cargar("assets/mapa/mapaPrueba.lua")
 
-    Jugador = ClaseJugador.Nuevo(400, 300, "assets/animaciones/personaje1.png", 200, 2, Mundo) -- le pasamos Mundo
+    Jugador = ClaseJugador(400, 300, "assets/animaciones/personaje1.png", 200, 2, Mundo) -- le pasamos Mundo
 
     Camara = Camera(Jugador.x + Jugador.ancho / 2, Jugador.y + Jugador.alto / 2)
 
-    Enemigos[1] = ClaseEnemigo.Nuevo(love.math.random(50, 900), love.math.random(50, 600), "assets/animaciones/enemigo.png", 120, 2)
-    Enemigos[2] = ClaseEnemigo.Nuevo(love.math.random(50, 900), love.math.random(50, 600), "assets/animaciones/enemigo.png", 120, 2)
-    Enemigos[3] = ClaseEnemigo.Nuevo(love.math.random(50, 900), love.math.random(50, 600), "assets/animaciones/enemigo.png", 120, 2)
+    Enemigos[1] = ClaseEnemigo(love.math.random(50, 900), love.math.random(50, 600), "assets/animaciones/enemigo.png", 120, 2)
+    Enemigos[2] = ClaseEnemigo(love.math.random(50, 900), love.math.random(50, 600), "assets/animaciones/enemigo.png", 120, 2)
+    Enemigos[3] = ClaseEnemigo(love.math.random(50, 900), love.math.random(50, 600), "assets/animaciones/enemigo.png", 120, 2)
 
-    Botiquin = ClaseBotiquin.Nuevo("assets/botiquin.png", 1, 30)
+    Botiquin = ClaseBotiquin("assets/botiquin.png", 1, 30)
 
     --Sonidos
     musica = love.audio.newSource("assets/sonidos/musica.mp3", "stream")
@@ -44,6 +45,11 @@ function love.load()
     love.audio.play(musica)
     musica:setVolume(0.50)
     SonidoGolpe = love.audio.newSource("assets/sonidos/efectoGolpe.mp3", "static")
+    Signal.register("jugador_danado", function()
+    if not SonidoGolpe:isPlaying() then
+        love.audio.play(SonidoGolpe)
+    end
+end)
 end
 
 -- =================== INTERACCION ===================
@@ -72,8 +78,6 @@ function love.update(dt)
             -- Colision jugador-enemigo: se chequea para cada enemigo de la lista
             if ComprobarColision(Jugador, enemigo) then
                 Jugador:RecibirDano(50 * dt)
-                if not SonidoGolpe:isPlaying() then
-                    love.audio.play(SonidoGolpe)
                 end
             end
         end
@@ -93,7 +97,6 @@ function love.update(dt)
             Botiquin.activo = false
         end
     end
-end
 
 -- =================== RENDERIZADO ===================
 function love.draw()

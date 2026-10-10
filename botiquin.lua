@@ -1,22 +1,17 @@
--- =================== "CLASE" BOTIQUIN ===================
-local Botiquin = {}
-Botiquin.__index = Botiquin
+local Class = require("librerias.hump-master.class")
 
--- =================== INICIALIZACION ===================
-function Botiquin.Nuevo(img, escala, curacion)
-    local o = setmetatable({}, Botiquin)
-    o.escala = escala
-    o.curacion = curacion
-    o.activo = true
-    o.imagen = love.graphics.newImage(img)
-    o.ancho = o.imagen:getWidth() * escala
-    o.alto = o.imagen:getHeight() * escala
+local Botiquin = Class{}
 
-    -- Posicion aleatoria dentro de los limites de la pantalla
-    o.x = love.math.random(0, love.graphics.getWidth() - o.ancho)
-    o.y = love.math.random(0, love.graphics.getHeight() - o.alto)
+function Botiquin:init(img, escala, curacion)
+    self.escala = escala
+    self.curacion = curacion
+    self.activo = true
+    self.imagen = love.graphics.newImage(img)
+    self.ancho = self.imagen:getWidth() * escala
+    self.alto = self.imagen:getHeight() * escala
 
-    return o
+    self.x = love.math.random(0, love.graphics.getWidth() - self.ancho)
+    self.y = love.math.random(0, love.graphics.getHeight() - self.alto)
 end
 
 -- =================== RENDERIZADO ===================

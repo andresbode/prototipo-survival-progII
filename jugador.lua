@@ -1,34 +1,33 @@
 -- =================== "CLASE" JUGADOR ===================
-local Jugador = {}
-Jugador.__index = Jugador
+local Class = require("librerias.hump-master.class")
 local ClaseAnimacion = require("animacion")
+local Signal = require("librerias.hump-master.signal")
+
+local Jugador = Class{}
 
 -- =================== INICIALIZACION ===================
-function Jugador.Nuevo(x, y, img, velocidad, escala, mundo)
-    local o = setmetatable({}, Jugador)
-    o.x = x
-    o.y = y
-    o.velocidad = velocidad
-    o.escala = escala
-    o.vida = 100
-    o.flashTiempo = 0
-    o.imagen = love.graphics.newImage(img)
-    o.ancho = 17 * escala
-    o.alto = 22 * escala
-    o.mundo = mundo
+function Jugador:init(x, y, img, velocidad, escala, mundo)
+    self.x = x
+    self.y = y
+    self.velocidad = velocidad
+    self.escala = escala
+    self.vida = 100
+    self.flashTiempo = 0
+    self.imagen = love.graphics.newImage(img)
+    self.ancho = 17 * escala
+    self.alto = 22 * escala
+    self.mundo = mundo
 
     -- Animaciones de caminar en las 4 direcciones
-    o.animIzquierda = ClaseAnimacion.Nueva(love.graphics.newImage("assets/animaciones/caminarIzquierda.png"), 17, 23, 4, 0.15)
-    o.animDerecha   = ClaseAnimacion.Nueva(love.graphics.newImage("assets/animaciones/caminarDerecha.png"), 17, 23, 4, 0.15)
-    o.animAbajo     = ClaseAnimacion.Nueva(love.graphics.newImage("assets/animaciones/caminarAbajo.png"), 20, 22, 4, 0.15)
-    o.animArriba    = ClaseAnimacion.Nueva(love.graphics.newImage("assets/animaciones/caminarArriba.png"), 20, 22, 4, 0.15)
+    self.animIzquierda = ClaseAnimacion(love.graphics.newImage("assets/animaciones/caminarIzquierda.png"), 17, 23, 4, 0.15)
+    self.animDerecha   = ClaseAnimacion(love.graphics.newImage("assets/animaciones/caminarDerecha.png"), 17, 23, 4, 0.15)
+    self.animAbajo     = ClaseAnimacion(love.graphics.newImage("assets/animaciones/caminarAbajo.png"), 20, 22, 4, 0.15)
+    self.animArriba    = ClaseAnimacion(love.graphics.newImage("assets/animaciones/caminarArriba.png"), 20, 22, 4, 0.15)
 
-    o.animando = false
-    o.animacionActual = nil -- cual de las 4 animaciones se esta mostrando ahora
+    self.animando = false
+    self.animacionActual = nil -- cual de las 4 animaciones se esta mostrando ahora
 
-    o.mundo:add(o, o.x, o.y, o.ancho, o.alto)
-
-    return o
+    self.mundo:add(self, self.x, self.y, self.ancho, self.alto)
 end
 
 -- =================== ACTUALIZAR ===================
@@ -75,6 +74,7 @@ function Jugador:RecibirDano(cantidad)
     self.vida = self.vida - cantidad
     self.flashTiempo = 0.1
     if self.vida < 0 then self.vida = 0 end
+    Signal.emit("jugador_danado", cantidad) --avisa que el jugador recibió daño
 end
 
 -- =================== CURAR ===================

@@ -1,39 +1,39 @@
 -- =================== "CLASE" ENEMIGO ===================
-local Enemigo = {}
-Enemigo.__index = Enemigo
+local Class = require("librerias.hump-master.class")
 local ClaseAnimacion = require("animacion")
 
+local Enemigo = Class{}
+
 -- =================== INICIALIZACION ===================
-function Enemigo.Nuevo(x, y, img, velocidad, escala)
-    local o = setmetatable({}, Enemigo)
-    o.x = x
-    o.y = y
-    o.velocidad = velocidad
-    o.escala = escala
-    o.imagen = love.graphics.newImage(img)
-    o.ancho = 17 * escala
-    o.alto = 22 * escala
+function Enemigo:init(x, y, img, velocidad, escala)
+    self.x = x
+    self.y = y
+    self.velocidad = velocidad
+    self.escala = escala
+    self.imagen = love.graphics.newImage(img)
+    self.ancho = 17 * escala
+    self.alto = 22 * escala
 
-    o.estado = "patrulla"
-    o.radioDeteccion = 250
-    o.radioAtaque = 0
+    self.estado = "patrulla"
+    self.radioDeteccion = 250
+    self.radioAtaque = 0
 
-    o.puntoA = { x = x, y = y }
-    o.puntoB = {
+    self.puntoA = { x = x, y = y }
+    self.puntoB = {
         x = x + love.math.random(-150, 150),
         y = y + love.math.random(-150, 150)
     }
-    o.destino = o.puntoB
+    self.destino = self.puntoB
 
-    o.animIzquierda = ClaseAnimacion.Nueva(love.graphics.newImage("assets/animaciones/caminarIzquierdaEnemigo.png"), 17, 23, 4, 0.15)
-    o.animDerecha   = ClaseAnimacion.Nueva(love.graphics.newImage("assets/animaciones/caminarDerechaEnemigo.png"), 17, 23, 4, 0.15)
-    o.animAbajo     = ClaseAnimacion.Nueva(love.graphics.newImage("assets/animaciones/caminarAbajoEnemigo.png"), 20, 22, 4, 0.15)
-    o.animArriba    = ClaseAnimacion.Nueva(love.graphics.newImage("assets/animaciones/caminarArribaEnemigo.png"), 20, 22, 4, 0.15)
+    self.animIzquierda = ClaseAnimacion(love.graphics.newImage("assets/animaciones/caminarIzquierdaEnemigo.png"), 17, 23, 4, 0.15)
+    self.animDerecha   = ClaseAnimacion(love.graphics.newImage("assets/animaciones/caminarDerechaEnemigo.png"), 17, 23, 4, 0.15)
+    self.animAbajo     = ClaseAnimacion(love.graphics.newImage("assets/animaciones/caminarAbajoEnemigo.png"), 20, 22, 4, 0.15)
+    self.animArriba    = ClaseAnimacion(love.graphics.newImage("assets/animaciones/caminarArribaEnemigo.png"), 20, 22, 4, 0.15)
 
-    o.animando = false
-    o.animacionActual = o.animAbajo
+    self.animando = false
+    self.animacionActual = self.animAbajo
 
-    return o
+    return self
 end
 
 -- =================== ACTUALIZAR ===================
