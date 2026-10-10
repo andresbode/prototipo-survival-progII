@@ -5,10 +5,12 @@ local ClaseBotiquin = require("botiquin")
 local ClaseMapa = require("mapa")
 local Camera = require("librerias.hump-master.camera")
 local Signal = require("librerias.hump-master.signal")
+local ClaseHUD = require("hud")
 
 Mapa = nil
 Mundo = nil
 Camara = nil
+Hud = nil
 
 JuegoTerminado = false
 Tiempo = 0
@@ -30,6 +32,8 @@ function love.load()
     Mapa, Mundo = ClaseMapa.Cargar("assets/mapa/mapaPrueba.lua")
 
     Jugador = ClaseJugador(400, 300, "assets/animaciones/personaje1.png", 200, 2, Mundo) -- le pasamos Mundo
+
+    Hud = ClaseHUD(Jugador.vida)
 
     Camara = Camera(Jugador.x + Jugador.ancho / 2, Jugador.y + Jugador.alto / 2)
 
@@ -83,6 +87,8 @@ function love.update(dt)
         end
 
         Tiempo = Tiempo + dt
+        Hud:Actualizar(TiempoParaGanar - Tiempo)
+
         if Tiempo >= TiempoParaGanar then
             JuegoTerminado = true
             Gane = true
@@ -112,9 +118,7 @@ function love.draw()
 
     Camara:detach()
 
-    -- HUD: se dibuja DESPUES de detach, para que quede fijo en pantalla
-    love.graphics.print("Vida: " .. math.floor(Jugador.vida), 10, 10)
-    love.graphics.print("Resiste: " .. math.floor(math.max(TiempoParaGanar - Tiempo, 0)), 350, 10)
+    Hud:Dibujar()
 
     if JuegoTerminado then
         if Gane then

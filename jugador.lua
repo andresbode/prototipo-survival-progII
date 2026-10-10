@@ -74,13 +74,14 @@ function Jugador:RecibirDano(cantidad)
     self.vida = self.vida - cantidad
     self.flashTiempo = 0.1
     if self.vida < 0 then self.vida = 0 end
-    Signal.emit("jugador_danado", cantidad) --avisa que el jugador recibió daño
+    Signal.emit("jugador_danado", self.vida) -- lleva la vida actual
 end
 
 -- =================== CURAR ===================
 function Jugador:Curar(cantidad)
     self.vida = self.vida + cantidad
     if self.vida > 100 then self.vida = 100 end
+    Signal.emit("jugador_curado", self.vida) 
 end
 
 -- =================== RENDERIZADO ===================
