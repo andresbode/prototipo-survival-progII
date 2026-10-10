@@ -18,6 +18,16 @@ function Jugador:init(x, y, img, velocidad, escala, mundo)
     self.alto = 22 * escala
     self.mundo = mundo
 
+    -- Dash
+    self.dashActivo = false
+    self.dashTiempo = 0          -- cuanto le queda al dash en curso
+    self.dashDuracion = 0.15     -- segundos que dura la rafaga
+    self.dashVelocidad = velocidad * 3
+    self.dashCooldown = 0        -- cuanto falta para poder usarlo de nuevo
+    self.dashEspera = 2          -- segundos entre dashes
+    self.dashDireccionX = 0
+    self.dashDireccionY = 0
+
     -- Animaciones de caminar en las 4 direcciones
     self.animIzquierda = ClaseAnimacion(love.graphics.newImage("assets/animaciones/caminarIzquierda.png"), 17, 23, 4, 0.15)
     self.animDerecha   = ClaseAnimacion(love.graphics.newImage("assets/animaciones/caminarDerecha.png"), 17, 23, 4, 0.15)
@@ -32,35 +42,65 @@ end
 
 -- =================== ACTUALIZAR ===================
 function Jugador:Actualizar(dt)
-    local moverX, moverY = 0, 0
+    local dirX, dirY = 0, 0
     self.animando = false
 
     if love.keyboard.isDown("w") then
-        moverY = -self.velocidad * dt
+        dirY = -1
         self.animando = true
         self.animacionActual = self.animArriba
     elseif love.keyboard.isDown("s") then
-        moverY = self.velocidad * dt
+        dirY = 1
         self.animando = true
         self.animacionActual = self.animAbajo
     elseif love.keyboard.isDown("a") then
-        moverX = -self.velocidad * dt
+        dirX = -1
         self.animando = true
         self.animacionActual = self.animIzquierda
     elseif love.keyboard.isDown("d") then
-        moverX = self.velocidad * dt
+        dirX = 1
         self.animando = true
         self.animacionActual = self.animDerecha
+    end
+
+    -- Cooldown del dash: avisa cuando vuelve a estar listo
+    if self.dashCooldown > 0 then
+        self.dashCooldown = self.dashCooldown - dt
+        if self.dashCooldown <= 0 then
+            Signal.emit("dash_listo")
+        end
+    end
+
+    -- Arranca el dash: Shift + una direccion apretada + cooldown terminado
+    if love.keyboard.isDown("lshift", "rshift") and not self.dashActivo
+        and self.dashCooldown <= 0 and (dirX ~= 0 or dirY ~= 0) then
+        self.dashActivo = true
+        self.dashTiempo = self.dashDuracion
+        self.dashDireccionX = dirX
+        self.dashDireccionY = dirY
+        self.dashCooldown = self.dashEspera
+        Signal.emit("dash_usado")
+    end
+
+    -- Movimiento: rafaga si hay dash, velocidad normal si no
+    local moverX, moverY
+    if self.dashActivo then
+        moverX = self.dashDireccionX * self.dashVelocidad * dt
+        moverY = self.dashDireccionY * self.dashVelocidad * dt
+        self.dashTiempo = self.dashTiempo - dt
+        if self.dashTiempo <= 0 then
+            self.dashActivo = false
+        end
+    else
+        moverX = dirX * self.velocidad * dt
+        moverY = dirY * self.velocidad * dt
     end
 
     if self.animando then
         self.animacionActual:Actualizar(dt)
     end
 
-    local destinoX = self.x + moverX
-    local destinoY = self.y + moverY
-
-    local x, y = self.mundo:move(self, destinoX, destinoY)
+    local x, y = self.mundo:move(self, self.x + moverX, self.y + moverY)
     self.x = x
     self.y = y
 
@@ -71,6 +111,7 @@ end
 
 -- =================== RECIBIR DAÑO ===================
 function Jugador:RecibirDano(cantidad)
+    if self.dashActivo then return end
     self.vida = self.vida - cantidad
     self.flashTiempo = 0.1
     if self.vida < 0 then self.vida = 0 end

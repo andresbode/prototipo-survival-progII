@@ -20,6 +20,7 @@ Gane = false
 --Sonidos
 musica = nil
 SonidoGolpe = nil
+SonidoDash = nil
 
 Jugador = nil
 Enemigos = {} -- lista de enemigos, para poder crear varios que en un futuro serán oleadas.
@@ -37,23 +38,34 @@ function love.load()
 
     Camara = Camera(Jugador.x + Jugador.ancho / 2, Jugador.y + Jugador.alto / 2)
 
-    Enemigos[1] = ClaseEnemigo(love.math.random(50, 900), love.math.random(50, 600), "assets/animaciones/enemigo.png", 120, 2)
-    Enemigos[2] = ClaseEnemigo(love.math.random(50, 900), love.math.random(50, 600), "assets/animaciones/enemigo.png", 120, 2)
-    Enemigos[3] = ClaseEnemigo(love.math.random(50, 900), love.math.random(50, 600), "assets/animaciones/enemigo.png", 120, 2)
+    Enemigos[1] = ClaseEnemigo(love.math.random(50, 900), love.math.random(50, 600), "assets/animaciones/enemigo.png",
+        120, 2)
+    Enemigos[2] = ClaseEnemigo(love.math.random(50, 900), love.math.random(50, 600), "assets/animaciones/enemigo.png",
+        120, 2)
+    Enemigos[3] = ClaseEnemigo(love.math.random(50, 900), love.math.random(50, 600), "assets/animaciones/enemigo.png",
+        120, 2)
 
     Botiquin = ClaseBotiquin("assets/botiquin.png", 1, 30)
 
-    --Sonidos
+        --Sonidos
     musica = love.audio.newSource("assets/sonidos/musica.mp3", "stream")
+    SonidoDash = love.audio.newSource("assets/sonidos/sonidoDash.mp3", "static")
+    SonidoGolpe = love.audio.newSource("assets/sonidos/efectoGolpe.mp3", "static")
     musica:setLooping(true)
     love.audio.play(musica)
-    musica:setVolume(0.50)
-    SonidoGolpe = love.audio.newSource("assets/sonidos/efectoGolpe.mp3", "static")
+    musica:setVolume(0.2)
+    SonidoGolpe:setVolume(0.3)
+
     Signal.register("jugador_danado", function()
-    if not SonidoGolpe:isPlaying() then
-        love.audio.play(SonidoGolpe)
-    end
-end)
+        if not SonidoGolpe:isPlaying() then
+            love.audio.play(SonidoGolpe)
+        end
+    end)
+
+    Signal.register("dash_usado", function()
+        SonidoDash:stop() -- por si todavía suena, que arranque desde el principio
+        love.audio.play(SonidoDash)
+    end)
 end
 
 -- =================== INTERACCION ===================
@@ -82,27 +94,27 @@ function love.update(dt)
             -- Colision jugador-enemigo: se chequea para cada enemigo de la lista
             if ComprobarColision(Jugador, enemigo) then
                 Jugador:RecibirDano(50 * dt)
-                end
             end
         end
-
-        Tiempo = Tiempo + dt
-        Hud:Actualizar(TiempoParaGanar - Tiempo)
-
-        if Tiempo >= TiempoParaGanar then
-            JuegoTerminado = true
-            Gane = true
-        end
-
-        if Jugador.vida <= 0 then
-            JuegoTerminado = true
-        end
-
-        if Botiquin.activo and ComprobarColision(Jugador, Botiquin) then
-            Jugador:Curar(Botiquin.curacion)
-            Botiquin.activo = false
-        end
     end
+
+    Tiempo = Tiempo + dt
+    Hud:Actualizar(TiempoParaGanar - Tiempo)
+
+    if Tiempo >= TiempoParaGanar then
+        JuegoTerminado = true
+        Gane = true
+    end
+
+    if Jugador.vida <= 0 then
+        JuegoTerminado = true
+    end
+
+    if Botiquin.activo and ComprobarColision(Jugador, Botiquin) then
+        Jugador:Curar(Botiquin.curacion)
+        Botiquin.activo = false
+    end
+end
 
 -- =================== RENDERIZADO ===================
 function love.draw()
