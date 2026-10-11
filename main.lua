@@ -1,12 +1,5 @@
 -- =================== DECLARACION ===================
-local ClaseJugador = require("jugador")
-local ClaseEnemigo = require("enemigo")
-local ClaseBotiquin = require("botiquin")
-local ClaseMapa = require("mapa")
-local Camera = require("librerias.hump-master.camera")
-local Signal = require("librerias.hump-master.signal")
-local ClaseHUD = require("hud")
-local Timer = require("librerias.hump-master.timer")
+require "dependencias"
 
 Mapa = nil
 Mundo = nil
@@ -26,7 +19,7 @@ SonidoCuracion = nil
 
 Jugador = nil
 Enemigos = {} -- lista de enemigos, para poder crear varios que en un futuro serán oleadas.
-Botiquin = nil
+Botiquines = {}
 
 -- =================== INICIALIZACION ===================
 function love.load()
@@ -36,18 +29,43 @@ function love.load()
 
     Jugador = ClaseJugador(400, 300, "assets/animaciones/personaje1.png", 200, 2, Mundo) -- le pasamos Mundo
 
-    Hud = ClaseHUD(Jugador.vida)
+    Hud = ClaseHUD(Jugador.vida, Jugador.dashEspera)
 
     Camara = Camera(Jugador.x + Jugador.ancho / 2, Jugador.y + Jugador.alto / 2)
 
-    Enemigos[1] = ClaseEnemigo(love.math.random(50, 900), love.math.random(50, 600), "assets/animaciones/enemigo.png",
-        120, 2)
-    Enemigos[2] = ClaseEnemigo(love.math.random(50, 900), love.math.random(50, 600), "assets/animaciones/enemigo.png",
-        120, 2)
-    Enemigos[3] = ClaseEnemigo(love.math.random(50, 900), love.math.random(50, 600), "assets/animaciones/enemigo.png",
-        120, 2)
+    -- Spawn de enemigos por zonas: el mapa se divide en una grilla y cada zona recibe sus enemigos
+    local anchoMapa = Mapa.width * Mapa.tilewidth
+    local altoMapa = Mapa.height * Mapa.tileheight
+    local columnas, filas = 3, 2
+    local enemigosPorZona = 3
+    local margen = 100 -- distancia minima a los bordes de cada zona
 
-    Botiquin = ClaseBotiquin("assets/botiquin.png", 1, 30)
+    local anchoZona = anchoMapa / columnas
+    local altoZona = altoMapa / filas
+
+    for fila = 0, filas - 1 do
+        for columna = 0, columnas - 1 do
+            for i = 1, enemigosPorZona do
+                local x = love.math.random(math.floor(columna * anchoZona + margen),
+                    math.floor((columna + 1) * anchoZona - margen))
+                local y = love.math.random(math.floor(fila * altoZona + margen),
+                    math.floor((fila + 1) * altoZona - margen))
+                table.insert(Enemigos, ClaseEnemigo(x, y, "assets/animaciones/enemigo.png", 120, 2))
+            end
+        end
+    end
+
+    -- Botiquines: uno en el tercio izquierdo del mapa y otro en el derecho, para que queden lejos
+    local margenBotiquin = 100
+    local tercio = anchoMapa / 3
+
+    local x1 = love.math.random(margenBotiquin, math.floor(tercio))
+    local y1 = love.math.random(margenBotiquin, altoMapa - margenBotiquin)
+    local x2 = love.math.random(math.floor(tercio * 2), anchoMapa - margenBotiquin)
+    local y2 = love.math.random(margenBotiquin, altoMapa - margenBotiquin)
+
+    table.insert(Botiquines, ClaseBotiquin("assets/botiquin.png", 1, 30, x1, y1))
+    table.insert(Botiquines, ClaseBotiquin("assets/botiquin.png", 1, 30, x2, y2))
 
     --Sonidos
     musica = love.audio.newSource("assets/sonidos/musica.mp3", "stream")
@@ -119,9 +137,11 @@ function love.update(dt)
         JuegoTerminado = true
     end
 
-    if Botiquin.activo and ComprobarColision(Jugador, Botiquin) then
-        Jugador:Curar(Botiquin.curacion)
-        Botiquin.activo = false
+    for i, botiquin in ipairs(Botiquines) do
+        if botiquin.activo and ComprobarColision(Jugador, botiquin) then
+            Jugador:Curar(botiquin.curacion)
+            botiquin.activo = false
+        end
     end
 end
 
@@ -134,7 +154,9 @@ function love.draw()
     for i, enemigo in ipairs(Enemigos) do
         enemigo:Dibujar()
     end
-    Botiquin:Dibujar()
+    for i, botiquin in ipairs(Botiquines) do
+        botiquin:Dibujar()
+    end
     ClaseMapa.DibujarArboles(Mapa)
 
     Camara:detach()

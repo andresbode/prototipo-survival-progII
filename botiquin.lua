@@ -2,7 +2,7 @@ local Class = require("librerias.hump-master.class")
 
 local Botiquin = Class{}
 
-function Botiquin:init(img, escala, curacion)
+function Botiquin:init(img, escala, curacion, x, y)
     self.escala = escala
     self.curacion = curacion
     self.activo = true
@@ -10,8 +10,8 @@ function Botiquin:init(img, escala, curacion)
     self.ancho = self.imagen:getWidth() * escala
     self.alto = self.imagen:getHeight() * escala
 
-    self.x = love.math.random(0, love.graphics.getWidth() - self.ancho)
-    self.y = love.math.random(0, love.graphics.getHeight() - self.alto)
+    self.x = x
+    self.y = y
 end
 
 -- =================== RENDERIZADO ===================
