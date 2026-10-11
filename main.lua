@@ -21,6 +21,7 @@ Gane = false
 musica = nil
 SonidoGolpe = nil
 SonidoDash = nil
+SonidoCuracion = nil
 
 Jugador = nil
 Enemigos = {} -- lista de enemigos, para poder crear varios que en un futuro serán oleadas.
@@ -47,10 +48,11 @@ function love.load()
 
     Botiquin = ClaseBotiquin("assets/botiquin.png", 1, 30)
 
-        --Sonidos
+    --Sonidos
     musica = love.audio.newSource("assets/sonidos/musica.mp3", "stream")
     SonidoDash = love.audio.newSource("assets/sonidos/sonidoDash.mp3", "static")
     SonidoGolpe = love.audio.newSource("assets/sonidos/efectoGolpe.mp3", "static")
+    SonidoCuracion = love.audio.newSource("assets/sonidos/sonidoCuracion.mp3", "static")
     musica:setLooping(true)
     love.audio.play(musica)
     musica:setVolume(0.2)
@@ -65,6 +67,11 @@ function love.load()
     Signal.register("dash_usado", function()
         SonidoDash:stop() -- por si todavía suena, que arranque desde el principio
         love.audio.play(SonidoDash)
+    end)
+
+    Signal.register("jugador_curado", function()
+        SonidoCuracion:stop()
+        love.audio.play(SonidoCuracion)
     end)
 end
 
@@ -99,7 +106,7 @@ function love.update(dt)
     end
 
     Tiempo = Tiempo + dt
-    Hud:Actualizar(TiempoParaGanar - Tiempo)
+    Hud:Actualizar(TiempoParaGanar - Tiempo, dt)
 
     if Tiempo >= TiempoParaGanar then
         JuegoTerminado = true
