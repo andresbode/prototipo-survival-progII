@@ -6,6 +6,7 @@ local ClaseMapa = require("mapa")
 local Camera = require("librerias.hump-master.camera")
 local Signal = require("librerias.hump-master.signal")
 local ClaseHUD = require("hud")
+local Timer = require("librerias.hump-master.timer")
 
 Mapa = nil
 Mundo = nil
@@ -90,6 +91,7 @@ end
 -- =================== ACTUALIZACION ===================
 function love.update(dt)
     if not JuegoTerminado then
+        Timer.update(dt)
         Jugador:Actualizar(dt)
         Camara:lookAt(Jugador.x + Jugador.ancho / 2, Jugador.y + Jugador.alto / 2)
         Mapa:update(dt)
@@ -100,7 +102,7 @@ function love.update(dt)
 
             -- Colision jugador-enemigo: se chequea para cada enemigo de la lista
             if ComprobarColision(Jugador, enemigo) then
-                Jugador:RecibirDano(50 * dt)
+                Jugador:RecibirDano(20)
             end
         end
     end
