@@ -141,6 +141,30 @@ function love.update(dt)
             end
         end
 
+        -- Separacion entre enemigos: si dos estan muy cerca, se empujan para no apilarse
+        local distanciaMinima = 34
+        for i = 1, #Enemigos - 1 do
+            for j = i + 1, #Enemigos do
+                local a = Enemigos[i]
+                local b = Enemigos[j]
+                local dx = b.x - a.x
+                local dy = b.y - a.y
+                local distancia = math.sqrt(dx * dx + dy * dy)
+
+                if distancia == 0 then dx, dy, distancia = 1, 0, 1 end 
+
+                if distancia < distanciaMinima then
+                    local empuje = (distanciaMinima - distancia) / 2
+                    local nx = dx / distancia
+                    local ny = dy / distancia
+                    a.x = a.x - nx * empuje
+                    a.y = a.y - ny * empuje
+                    b.x = b.x + nx * empuje
+                    b.y = b.y + ny * empuje
+                end
+            end
+        end
+
         for i, botiquin in ipairs(Botiquines) do
             if botiquin.activo and ComprobarColision(Jugador, botiquin) then
                 Jugador:Curar(botiquin.curacion)
