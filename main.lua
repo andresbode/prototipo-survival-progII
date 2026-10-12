@@ -10,12 +10,16 @@ JuegoTerminado = false
 Tiempo = 0
 TiempoParaGanar = 11
 Gane = false
+FuenteTitulo = nil
+FuenteOpciones = nil
 
 --Sonidos
 musica = nil
 SonidoGolpe = nil
 SonidoDash = nil
 SonidoCuracion = nil
+SonidoVictoria = nil
+SonidoDerrota = nil
 
 Jugador = nil
 Enemigos = {} -- lista de enemigos, para poder crear varios que en un futuro serán oleadas.
@@ -26,6 +30,9 @@ function love.load()
     love.graphics.setDefaultFilter("nearest", "nearest")
 
     Mapa, Mundo = ClaseMapa.Cargar("assets/mapa/mapaPrueba.lua")
+
+    FuenteTitulo = love.graphics.newFont("assets/PressStart2P-Regular.ttf", 32)
+    FuenteOpciones = love.graphics.newFont("assets/PressStart2P-Regular.ttf", 14)
 
     Jugador = ClaseJugador(400, 300, "assets/animaciones/personaje1.png", 200, 2, Mundo) -- le pasamos Mundo
 
@@ -72,6 +79,8 @@ function love.load()
     SonidoDash = love.audio.newSource("assets/sonidos/sonidoDash.mp3", "static")
     SonidoGolpe = love.audio.newSource("assets/sonidos/efectoGolpe.mp3", "static")
     SonidoCuracion = love.audio.newSource("assets/sonidos/sonidoCuracion.mp3", "static")
+    SonidoVictoria = love.audio.newSource("assets/sonidos/sonidoVictoria.mp3", "static")
+    SonidoDerrota = love.audio.newSource("assets/sonidos/sonidoDerrota.mp3", "static")
     musica:setLooping(true)
     love.audio.play(musica)
     musica:setVolume(0.2)
@@ -91,6 +100,14 @@ function love.load()
     Signal.register("jugador_curado", function()
         SonidoCuracion:stop()
         love.audio.play(SonidoCuracion)
+    end)
+
+    Signal.register("juego_ganado", function()
+        love.audio.play(SonidoVictoria)
+    end)
+
+    Signal.register("juego_perdido", function()
+        love.audio.play(SonidoDerrota)
     end)
 end
 
@@ -123,26 +140,52 @@ function love.update(dt)
                 Jugador:RecibirDano(20)
             end
         end
-    end
 
-    Tiempo = Tiempo + dt
-    Hud:Actualizar(TiempoParaGanar - Tiempo, dt)
+        for i, botiquin in ipairs(Botiquines) do
+            if botiquin.activo and ComprobarColision(Jugador, botiquin) then
+                Jugador:Curar(botiquin.curacion)
+                botiquin.activo = false
+            end
+        end
 
-    if Tiempo >= TiempoParaGanar then
-        JuegoTerminado = true
-        Gane = true
-    end
+        Tiempo = Tiempo + dt
+        Hud:Actualizar(TiempoParaGanar - Tiempo, dt)
 
-    if Jugador.vida <= 0 then
-        JuegoTerminado = true
-    end
-
-    for i, botiquin in ipairs(Botiquines) do
-        if botiquin.activo and ComprobarColision(Jugador, botiquin) then
-            Jugador:Curar(botiquin.curacion)
-            botiquin.activo = false
+        if Jugador.vida <= 0 then
+            JuegoTerminado = true
+            Signal.emit("juego_perdido")
+        elseif Tiempo >= TiempoParaGanar then
+            JuegoTerminado = true
+            Gane = true
+            Signal.emit("juego_ganado")
         end
     end
+end
+
+function love.keypressed(key)
+    if not JuegoTerminado then return end
+
+    if key == "r" then
+        Reiniciar()
+    elseif key == "escape" then
+        love.event.quit()
+    end
+end
+
+function Reiniciar()
+    love.audio.stop() -- frena la musica y cualquier sonido en curso
+
+    -- Borra los listeners: love.load() y HUD:init los vuelven a registrar
+    Signal.clear("jugador_danado", "jugador_curado", "dash_usado", "dash_listo", "juego_ganado", "juego_perdido")
+    Timer.clear() -- cancela la invulnerabilidad pendiente del jugador anterior
+
+    Enemigos = {}
+    Botiquines = {}
+    JuegoTerminado = false
+    Gane = false
+    Tiempo = 0
+
+    love.load() -- recrea mapa, jugador, HUD, enemigos, botiquines y sonidos
 end
 
 -- =================== RENDERIZADO ===================
@@ -164,10 +207,29 @@ function love.draw()
     Hud:Dibujar()
 
     if JuegoTerminado then
+        local fuenteAnterior = love.graphics.getFont()
+        local ancho, alto = love.graphics.getDimensions()
+
+        -- Velo oscuro sobre el juego
+        love.graphics.setColor(0, 0, 0, 0.7)
+        love.graphics.rectangle("fill", 0, 0, ancho, alto)
+
+        love.graphics.setFont(FuenteTitulo)
         if Gane then
-            love.graphics.print("GANASTE!", 350, 280)
+            love.graphics.setColor(0.4, 1, 0.5)
+            love.graphics.printf("GANASTE!", 0, alto / 2 - 80, ancho, "center")
         else
-            love.graphics.print("GAME OVER", 350, 280)
+            love.graphics.setColor(1, 0.3, 0.3)
+            love.graphics.printf("GAME OVER", 0, alto / 2 - 80, ancho, "center")
         end
+
+        love.graphics.setFont(FuenteOpciones)
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.printf("R - Reintentar", 0, alto / 2 + 10, ancho, "center")
+        love.graphics.printf("Esc - Salir", 0, alto / 2 + 40, ancho, "center")
+
+        -- Restaurar fuente y color para no afectar al HUD del frame siguiente
+        love.graphics.setFont(fuenteAnterior)
+        love.graphics.setColor(1, 1, 1)
     end
 end
