@@ -29,10 +29,6 @@ function Jugador:init(x, y, img, velocidad, escala, mundo)
     self.dashDireccionX = 0
     self.dashDireccionY = 0
 
-    -- Invulnerabilidad tras recibir daño
-    self.invulnerable = false
-    self.invulnerabilidadDuracion = 1
-
     -- Animaciones de caminar en las 4 direcciones
     self.animIzquierda = ClaseAnimacion(love.graphics.newImage("assets/animaciones/caminarIzquierda.png"), 17, 23, 4, 0.15)
     self.animDerecha   = ClaseAnimacion(love.graphics.newImage("assets/animaciones/caminarDerecha.png"), 17, 23, 4, 0.15)
@@ -116,19 +112,14 @@ end
 
 -- =================== RECIBIR DAÑO ===================
 function Jugador:RecibirDano(cantidad)
-    if self.dashActivo or self.invulnerable then return end -- ignora el daño si es invulnerable
+    if self.dashActivo then return false end -- dash invulnerable
 
     self.vida = self.vida - cantidad
     self.flashTiempo = 0.1
     if self.vida < 0 then self.vida = 0 end
 
-    -- Invulnerable hasta que el timer lo apague
-    self.invulnerable = true
-    Timer.after(self.invulnerabilidadDuracion, function()
-        self.invulnerable = false
-    end)
-
     Signal.emit("jugador_danado", self.vida)
+    return true -- avisa que el golpe sí entró
 end
 
 -- =================== CURAR ===================

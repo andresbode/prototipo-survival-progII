@@ -87,13 +87,12 @@ function love.load()
     SonidoGolpe:setVolume(0.3)
 
     Signal.register("jugador_danado", function()
-        if not SonidoGolpe:isPlaying() then
-            love.audio.play(SonidoGolpe)
-        end
+        local golpe = SonidoGolpe:clone() 
+        love.audio.play(golpe)
     end)
 
     Signal.register("dash_usado", function()
-        SonidoDash:stop() -- por si todavía suena, que arranque desde el principio
+        SonidoDash:stop()
         love.audio.play(SonidoDash)
     end)
 
@@ -126,7 +125,6 @@ end
 -- =================== ACTUALIZACION ===================
 function love.update(dt)
     if not JuegoTerminado then
-        Timer.update(dt)
         Jugador:Actualizar(dt)
         Camara:lookAt(Jugador.x + Jugador.ancho / 2, Jugador.y + Jugador.alto / 2)
         Mapa:update(dt)
@@ -136,8 +134,10 @@ function love.update(dt)
             enemigo:Actualizar(Jugador.x, Jugador.y, Jugador.ancho, dt)
 
             -- Colision jugador-enemigo: se chequea para cada enemigo de la lista
-            if ComprobarColision(Jugador, enemigo) then
-                Jugador:RecibirDano(20)
+            if ComprobarColision(Jugador, enemigo) and enemigo.golpeCooldown <= 0 then
+                if Jugador:RecibirDano(5) then
+                    enemigo.golpeCooldown = enemigo.golpeEspera
+                end
             end
         end
 
@@ -177,7 +177,6 @@ function Reiniciar()
 
     -- Borra los listeners: love.load() y HUD:init los vuelven a registrar
     Signal.clear("jugador_danado", "jugador_curado", "dash_usado", "dash_listo", "juego_ganado", "juego_perdido")
-    Timer.clear() -- cancela la invulnerabilidad pendiente del jugador anterior
 
     Enemigos = {}
     Botiquines = {}

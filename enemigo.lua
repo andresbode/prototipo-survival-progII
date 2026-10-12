@@ -13,6 +13,9 @@ function Enemigo:init(x, y, img, velocidad, escala)
     self.imagen = love.graphics.newImage(img)
     self.ancho = 17 * escala
     self.alto = 22 * escala
+        -- Golpe propio: cada enemigo pega una vez por segundo mientras toca al jugador
+    self.golpeEspera = 1
+    self.golpeCooldown = 0
 
     self.estado = "patrulla"
     self.radioDeteccion = 250
@@ -38,6 +41,9 @@ end
 
 -- =================== ACTUALIZAR ===================
 function Enemigo:Actualizar(jugadorX, jugadorY, jugadorAncho, dt)
+        if self.golpeCooldown > 0 then
+        self.golpeCooldown = self.golpeCooldown - dt
+    end
     local dx = jugadorX - self.x
     local dy = jugadorY - self.y
     local distancia = math.sqrt(dx * dx + dy * dy)
