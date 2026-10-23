@@ -87,7 +87,7 @@ function love.load()
     SonidoGolpe:setVolume(0.3)
 
     Signal.register("jugador_danado", function()
-        local golpe = SonidoGolpe:clone() 
+        local golpe = SonidoGolpe:clone()
         love.audio.play(golpe)
     end)
 
@@ -126,7 +126,15 @@ end
 function love.update(dt)
     if not JuegoTerminado then
         Jugador:Actualizar(dt)
-        Camara:lookAt(Jugador.x + Jugador.ancho / 2, Jugador.y + Jugador.alto / 2)
+        -- La camara sigue al jugador pero sin salirse del mapa (evita los bordes negros)
+        local anchoMapa = Mapa.width * Mapa.tilewidth
+        local altoMapa = Mapa.height * Mapa.tileheight
+        local mitadAncho = love.graphics.getWidth() / 2
+        local mitadAlto = love.graphics.getHeight() / 2
+
+        local camaraX = math.max(mitadAncho, math.min(Jugador.x + Jugador.ancho / 2, anchoMapa - mitadAncho))
+        local camaraY = math.max(mitadAlto, math.min(Jugador.y + Jugador.alto / 2, altoMapa - mitadAlto))
+        Camara:lookAt(camaraX, camaraY)
         Mapa:update(dt)
 
         -- Recorremos todos los enemigos de la lista con un for, para actualizar a cada uno
@@ -151,7 +159,7 @@ function love.update(dt)
                 local dy = b.y - a.y
                 local distancia = math.sqrt(dx * dx + dy * dy)
 
-                if distancia == 0 then dx, dy, distancia = 1, 0, 1 end 
+                if distancia == 0 then dx, dy, distancia = 1, 0, 1 end
 
                 if distancia < distanciaMinima then
                     local empuje = (distanciaMinima - distancia) / 2
