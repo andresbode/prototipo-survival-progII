@@ -205,7 +205,10 @@ function love.keypressed(key)
 end
 
 function Reiniciar()
-    love.audio.stop() -- frena la musica y cualquier sonido en curso
+    -- musica y sonidos se frenan por separado porque love.audio.stop() falla en la version web
+    musica:stop()
+    SonidoVictoria:stop()
+    SonidoDerrota:stop()
 
     -- Borra los listeners: love.load() y HUD:init los vuelven a registrar
     Signal.clear("jugador_danado", "jugador_curado", "dash_usado", "dash_listo", "juego_ganado", "juego_perdido")
