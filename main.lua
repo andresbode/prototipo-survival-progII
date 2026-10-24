@@ -22,6 +22,8 @@ SonidoVictoria = nil
 SonidoDerrota = nil
 
 Jugador = nil
+Escopeta = nil
+Perdigones = nil
 Enemigos = {} -- lista de enemigos, para poder crear varios que en un futuro serán oleadas.
 Botiquines = {}
 
@@ -35,7 +37,8 @@ function love.load()
     FuenteOpciones = love.graphics.newFont("assets/PressStart2P-Regular.ttf", 14)
 
     Jugador = ClaseJugador(400, 300, "assets/animaciones/personaje1.png", 200, 2, Mundo) -- le pasamos Mundo
-
+    Escopeta = ClaseEscopeta("assets/escopeta.png", 1.5)
+    Perdigones = ClasePerdigones(30)
     Hud = ClaseHUD(Jugador.vida, Jugador.dashEspera)
 
     Camara = Camera(Jugador.x + Jugador.ancho / 2, Jugador.y + Jugador.alto / 2)
@@ -135,6 +138,13 @@ function love.update(dt)
         local camaraX = math.max(mitadAncho, math.min(Jugador.x + Jugador.ancho / 2, anchoMapa - mitadAncho))
         local camaraY = math.max(mitadAlto, math.min(Jugador.y + Jugador.alto / 2, altoMapa - mitadAlto))
         Camara:lookAt(camaraX, camaraY)
+        local mouseX, mouseY = Camara:mousePosition() -- posicion del mouse en el mundo, no en la pantalla
+        Escopeta:Actualizar(Jugador, mouseX, mouseY, dt)
+
+        if love.mouse.isDown(1) then
+            Escopeta:Disparar(Perdigones)
+        end
+        Perdigones:Actualizar(dt)
         Mapa:update(dt)
 
         -- Recorremos todos los enemigos de la lista con un for, para actualizar a cada uno
@@ -228,6 +238,9 @@ function love.draw()
 
     ClaseMapa.DibujarSuelo(Mapa)
     Jugador:Dibujar()
+    Escopeta:Dibujar()
+    Perdigones:Dibujar()
+
     for i, enemigo in ipairs(Enemigos) do
         enemigo:Dibujar()
     end
