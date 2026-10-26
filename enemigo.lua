@@ -137,6 +137,8 @@ function Enemigo:RecibirDano(cantidad)
     if self.vida <= 0 then
         self.vivo = false
         Signal.emit("enemigo_muerto")
+    else
+        Signal.emit("enemigo_golpeado") -- solo si sigue vivo
     end
 end
 

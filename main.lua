@@ -22,6 +22,9 @@ SonidoDash = nil
 SonidoCuracion = nil
 SonidoVictoria = nil
 SonidoDerrota = nil
+SonidoDisparo = nil
+SonidoImpacto = nil
+SonidoMuerte = nil
 
 Jugador = nil
 Escopeta = nil
@@ -54,6 +57,11 @@ function love.load()
     SonidoCuracion = love.audio.newSource("assets/sonidos/sonidoCuracion.mp3", "static")
     SonidoVictoria = love.audio.newSource("assets/sonidos/sonidoVictoria.mp3", "static")
     SonidoDerrota = love.audio.newSource("assets/sonidos/sonidoDerrota.mp3", "static")
+    SonidoDisparo = love.audio.newSource("assets/sonidos/sonidoDisparo.mp3", "static")
+    SonidoImpacto = love.audio.newSource("assets/sonidos/sonidoImpacto.mp3", "static")
+    SonidoMuerte = love.audio.newSource("assets/sonidos/sonidoMuerte.mp3", "static")
+    SonidoDisparo:setVolume(0.5)
+    SonidoImpacto:setVolume(0.5)
     musica:setLooping(true)
     love.audio.play(musica)
     musica:setVolume(0.2)
@@ -84,6 +92,18 @@ function love.load()
 
     Signal.register("enemigo_muerto", function()
         SumarPuntaje(5)
+    end)
+
+    Signal.register("disparo", function()
+        love.audio.play(SonidoDisparo:clone())
+    end)
+
+    Signal.register("enemigo_golpeado", function()
+        love.audio.play(SonidoImpacto:clone())
+    end)
+
+    Signal.register("enemigo_muerto", function()
+        love.audio.play(SonidoMuerte:clone())
     end)
 end
 
@@ -205,7 +225,6 @@ function love.update(dt)
                 botiquin.activo = false
             end
         end
-
     end
 end
 
@@ -227,7 +246,7 @@ function Reiniciar()
 
     -- Borra los listeners: love.load() y HUD:init los vuelven a registrar
     Signal.clear("jugador_danado", "jugador_curado", "dash_usado", "dash_listo", "juego_ganado", "juego_perdido",
-        "enemigo_muerto", "puntaje_cambiado", "disparo", "fase_cambiada")
+        "enemigo_muerto", "puntaje_cambiado", "disparo", "fase_cambiada", "enemigo_golpeado")
 
     Puntaje = 0
     PuntajeSegundos = 0
