@@ -23,6 +23,8 @@ function HUD:init(vidaInicial, dashEspera)
     self.dashEspera = dashEspera
     self.dashCooldown = 0
 
+    self.fuenteNumero = love.graphics.newFont("assets/PressStart2P-Regular.ttf", 72)
+
     Signal.register("jugador_danado", function(vida)
         self.vida = vida
         self.flashTiempo = 0.15
@@ -111,6 +113,27 @@ function HUD:Dibujar()
         love.graphics.print("Oleada " .. self.oleada .. "/" .. self.totalOleadas .. "   Resiste: " .. segundos, 350, 10)
     end
     love.graphics.print("Score: " .. self.puntaje, 350, 30)
+
+        -- Pausa entre oleadas: mensaje grande y cuenta regresiva
+    if self.fase == "pausa" then
+        local fuenteAnterior = love.graphics.getFont()
+        local ancho, alto = love.graphics.getDimensions()
+
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.setFont(FuenteTitulo)
+        love.graphics.printf("FIN DE OLEADA " .. self.oleada, 0, alto / 2 - 100, ancho, "center")
+
+        love.graphics.setFont(FuenteOpciones)
+        love.graphics.printf("Aprovecha para curarte", 0, alto / 2 - 50, ancho, "center")
+
+        love.graphics.setFont(self.fuenteNumero)
+        love.graphics.setColor(0.4, 1, 0.5)
+        love.graphics.printf(tostring(segundos), 0, alto / 2 - 10, ancho, "center")
+
+        love.graphics.setFont(fuenteAnterior)
+        love.graphics.setColor(1, 1, 1)
+    end
+    
 end
 
 -- =================== EXPORTAR ===================

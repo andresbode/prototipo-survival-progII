@@ -31,7 +31,7 @@ end
 
 -- =================== SECUENCIA ===================
 function Oleadas:Secuencia()
-    self:CrearBotiquines() -- botiquines de la primera oleada
+    self:CrearBotiquines()
 
     for n = 1, self.total do
         self.numero = n
@@ -41,6 +41,7 @@ function Oleadas:Secuencia()
         self:Pelear(duracion, n)
 
         if n < self.total then
+            self:LimpiarEnemigos() -- desaparecen los enemigos de la oleada que termino
             self:CambiarFase("pausa")
             self:CrearBotiquines() -- aparecen al empezar la pausa
             self:Esperar(self.pausa)
@@ -127,6 +128,14 @@ function Oleadas:Actualizar(dt)
     if coroutine.status(self.corrutina) ~= "dead" then
         local ok, err = coroutine.resume(self.corrutina, dt)
         if not ok then error(err) end -- si la corrutina falla, que se vea el error
+    end
+end
+
+-- =================== LIMPIEZA ===================
+-- Borra los enemigos que quedan al terminar una oleada (se borra de la misma lista que usa main.lua)
+function Oleadas:LimpiarEnemigos()
+    for i = #self.enemigos, 1, -1 do
+        table.remove(self.enemigos, i)
     end
 end
 
