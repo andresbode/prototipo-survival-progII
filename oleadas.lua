@@ -5,7 +5,8 @@ local Signal = require("librerias.hump-master.signal")
 local Oleadas = Class {}
 
 -- =================== INICIALIZACION ===================
-function Oleadas:init(mapa, jugador, enemigos, botiquines)
+function Oleadas:init(mapa, jugador, enemigos, botiquines, mundo)
+    self.mundo = mundo
     self.jugador = jugador
     self.enemigos = enemigos
     self.botiquines = botiquines
@@ -106,16 +107,29 @@ function Oleadas:CrearBotiquines()
         end
     end
 
-    -- 1 botiquin en un anillo de 250 a 450 px alrededor del jugador
     for i = 1, self.botiquinesPorOleada do
-        local angulo = love.math.random() * math.pi * 2
-        local distancia = love.math.random(250, 450)
-        local x = self.jugador.x + math.cos(angulo) * distancia
-        local y = self.jugador.y + math.sin(angulo) * distancia
-        x = math.max(self.margen, math.min(x, self.anchoMapa - self.margen))
-        y = math.max(self.margen, math.min(y, self.altoMapa - self.margen))
+        local x, y
+        -- Hasta 30 intentos para encontrar un lugar que no choque con un arbol o una pared
+        for intento = 1, 30 do
+            local angulo = love.math.random() * math.pi * 2
+            local distancia = love.math.random(250, 450)
+            x = self.jugador.x + math.cos(angulo) * distancia
+            y = self.jugador.y + math.sin(angulo) * distancia
+            x = math.max(self.margen, math.min(x, self.anchoMapa - self.margen))
+            y = math.max(self.margen, math.min(y, self.altoMapa - self.margen))
+
+            if not self:HayPared(x, y, 64, 64) then break end
+        end
         table.insert(self.botiquines, ClaseBotiquin("assets/botiquin.png", 1, 30, x, y))
     end
+end
+
+-- Pregunta a Bump si el rectangulo toca algo marcado como pared (arboles, bordes del mapa)
+function Oleadas:HayPared(x, y, ancho, alto)
+    local items = self.mundo:queryRect(x, y, ancho, alto, function(item)
+        return item.esPared
+    end)
+    return #items > 0
 end
 
 -- =================== EVENTOS ===================

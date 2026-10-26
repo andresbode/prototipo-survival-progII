@@ -48,7 +48,7 @@ function love.load()
 
     Camara = Camera(Jugador.x + Jugador.ancho / 2, Jugador.y + Jugador.alto / 2)
 
-    Oleadas = ClaseOleadas(Mapa, Jugador, Enemigos, Botiquines)
+    Oleadas = ClaseOleadas(Mapa, Jugador, Enemigos, Botiquines, Mundo)
 
     --Sonidos
     musica = love.audio.newSource("assets/sonidos/musica.mp3", "stream")
