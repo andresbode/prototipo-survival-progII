@@ -9,6 +9,7 @@ function HUD:init(vidaInicial, dashEspera)
     self.vida = vidaInicial
     self.vidaMaxima = vidaInicial
     self.tiempoRestante = 0
+    self.puntaje = 0
 
     -- parpadeo de la barra
     self.flashTiempo = 0
@@ -34,6 +35,10 @@ function HUD:init(vidaInicial, dashEspera)
     end)
     Signal.register("dash_listo", function()
         self.dashCooldown = 0
+    end)
+
+    Signal.register("puntaje_cambiado", function(puntaje)
+        self.puntaje = puntaje
     end)
 end
 
@@ -90,6 +95,7 @@ function HUD:Dibujar()
     love.graphics.rectangle("line", x, dashY, ancho, dashAlto)
 
     love.graphics.print("Resiste: " .. math.floor(math.max(self.tiempoRestante, 0)), 350, 10)
+    love.graphics.print("Score: " .. self.puntaje, 350, 30)
 end
 
 -- =================== EXPORTAR ===================

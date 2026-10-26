@@ -46,6 +46,19 @@ function Perdigones:Actualizar(dt)
     end
 end
 
+-- =================== IMPACTO ===================
+-- Devuelve cuantos perdigones activos tocaron al objetivo y los devuelve al pool
+function Perdigones:Impacto(objetivo)
+    local impactos = 0
+    for _, p in ipairs(self.lista) do
+        if p.activo and ComprobarColision(p, objetivo) then
+            p.activo = false
+            impactos = impactos + 1
+        end
+    end
+    return impactos
+end
+
 -- =================== RENDERIZADO ===================
 function Perdigones:Dibujar()
     love.graphics.setColor(1, 0.9, 0.3)

@@ -8,10 +8,12 @@ Hud = nil
 
 JuegoTerminado = false
 Tiempo = 0
-TiempoParaGanar = 11
+TiempoParaGanar = 110
 Gane = false
 FuenteTitulo = nil
 FuenteOpciones = nil
+Puntaje = 0
+PuntajeSegundos = 0 -- acumula dt para sumar 1 punto por segundo
 
 --Sonidos
 musica = nil
@@ -111,6 +113,10 @@ function love.load()
     Signal.register("juego_perdido", function()
         love.audio.play(SonidoDerrota)
     end)
+
+    Signal.register("enemigo_muerto", function()
+        SumarPuntaje(5)
+    end)
 end
 
 -- =================== INTERACCION ===================
@@ -123,6 +129,11 @@ function ComprobarColision(a, b)
         and a.x + a.ancho > b.x
         and a.y < b.y + b.alto
         and a.y + a.alto > b.y
+end
+
+function SumarPuntaje(cantidad)
+    Puntaje = Puntaje + cantidad
+    Signal.emit("puntaje_cambiado", Puntaje)
 end
 
 -- =================== ACTUALIZACION ===================
@@ -183,6 +194,30 @@ function love.update(dt)
             end
         end
 
+        -- Perdigones contra enemigos: cada perdigon que toca a un enemigo le saca 1 de vida
+        for _, enemigo in ipairs(Enemigos) do
+            if enemigo.vivo then
+                local impactos = Perdigones:Impacto(enemigo)
+                if impactos > 0 then
+                    enemigo:RecibirDano(impactos)
+                end
+            end
+        end
+
+        -- Se sacan los enemigos muertos (de atras para adelante para no saltear ninguno)
+        for i = #Enemigos, 1, -1 do
+            if not Enemigos[i].vivo then
+                table.remove(Enemigos, i)
+            end
+        end
+
+        -- Score: 1 punto por segundo
+        PuntajeSegundos = PuntajeSegundos + dt
+        if PuntajeSegundos >= 1 then
+            PuntajeSegundos = PuntajeSegundos - 1
+            SumarPuntaje(1)
+        end
+
         for i, botiquin in ipairs(Botiquines) do
             if botiquin.activo and ComprobarColision(Jugador, botiquin) then
                 Jugador:Curar(botiquin.curacion)
@@ -221,7 +256,11 @@ function Reiniciar()
     SonidoDerrota:stop()
 
     -- Borra los listeners: love.load() y HUD:init los vuelven a registrar
-    Signal.clear("jugador_danado", "jugador_curado", "dash_usado", "dash_listo", "juego_ganado", "juego_perdido")
+    Signal.clear("jugador_danado", "jugador_curado", "dash_usado", "dash_listo", "juego_ganado", "juego_perdido",
+        "enemigo_muerto", "puntaje_cambiado", "disparo")
+
+    Puntaje = 0
+    PuntajeSegundos = 0
 
     Enemigos = {}
     Botiquines = {}
@@ -272,6 +311,7 @@ function love.draw()
 
         love.graphics.setFont(FuenteOpciones)
         love.graphics.setColor(1, 1, 1)
+        love.graphics.printf("Score: " .. Puntaje, 0, alto / 2 - 30, ancho, "center")
         love.graphics.printf("R - Reintentar", 0, alto / 2 + 10, ancho, "center")
         love.graphics.printf("Esc - Salir", 0, alto / 2 + 40, ancho, "center")
 
