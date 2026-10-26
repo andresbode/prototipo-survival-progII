@@ -71,7 +71,9 @@ function Enemigo:Actualizar(jugadorX, jugadorY, jugadorAncho, dt)
     self.radioAtaque = (jugadorAncho + self.ancho) / 2
     self.animando = false
 
-    if distancia <= self.radioAtaque then
+    local radioSalidaAtaque = self.radioAtaque * 1.4
+
+    if distancia <= self.radioAtaque or (self.estado == "ataca" and distancia <= radioSalidaAtaque) then
         self.estado = "ataca"
     elseif distancia <= self.radioDeteccion then
         self.estado = "persigue"
