@@ -5,7 +5,8 @@ Mapa = nil
 Mundo = nil
 Camara = nil
 Hud = nil
-
+Pastos = {}
+ImagenPasto = nil
 JuegoTerminado = false
 Tiempo = 0
 Gane = false
@@ -35,20 +36,35 @@ Botiquines = {}
 -- =================== INICIALIZACION ===================
 function love.load()
     love.graphics.setDefaultFilter("nearest", "nearest")
-
     Mapa, Mundo = ClaseMapa.Cargar("assets/mapa/mapaPrueba.lua")
 
     FuenteTitulo = love.graphics.newFont("assets/PressStart2P-Regular.ttf", 32)
     FuenteOpciones = love.graphics.newFont("assets/PressStart2P-Regular.ttf", 14)
-
     Jugador = ClaseJugador(400, 300, "assets/animaciones/personaje1.png", 200, 2, Mundo) -- le pasamos Mundo
     Escopeta = ClaseEscopeta("assets/escopeta.png", 1.5)
     Perdigones = ClasePerdigones(30)
     Hud = ClaseHUD(Jugador.vida, Jugador.dashEspera)
-
     Camara = Camera(Jugador.x + Jugador.ancho / 2, Jugador.y + Jugador.alto / 2)
-
     Oleadas = ClaseOleadas(Mapa, Jugador, Enemigos, Botiquines, Mundo)
+    -- Pastos decorativos: posiciones al azar, sin colision, y no nacen sobre arboles ni paredes
+    ImagenPasto = love.graphics.newImage("assets/mapa/pasto.png")
+    Pastos = {}
+    local anchoMapa = Mapa.width * Mapa.tilewidth
+    local altoMapa = Mapa.height * Mapa.tileheight
+    local anchoPasto = ImagenPasto:getWidth() * 2 
+    local altoPasto = ImagenPasto:getHeight() * 2
+
+    for i = 1, 150 do
+        local x = love.math.random(0, anchoMapa - anchoPasto)
+        local y = love.math.random(0, altoMapa - altoPasto)
+        local sobrePared = #Mundo:queryRect(x, y, anchoPasto, altoPasto, function(item)
+            return item.esPared
+        end) > 0
+
+        if not sobrePared then
+            table.insert(Pastos, { x = x, y = y })
+        end
+    end
 
     --Sonidos
     musica = love.audio.newSource("assets/sonidos/musica.mp3", "stream")
@@ -265,6 +281,9 @@ function love.draw()
     Camara:attach()
 
     ClaseMapa.DibujarSuelo(Mapa)
+    for _, pasto in ipairs(Pastos) do
+        love.graphics.draw(ImagenPasto, pasto.x, pasto.y, 0, 2, 2)
+    end
     Jugador:Dibujar()
     Escopeta:Dibujar()
     Perdigones:Dibujar()
