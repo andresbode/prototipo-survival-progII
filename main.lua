@@ -8,12 +8,12 @@ Hud = nil
 
 JuegoTerminado = false
 Tiempo = 0
-TiempoParaGanar = 110
 Gane = false
 FuenteTitulo = nil
 FuenteOpciones = nil
 Puntaje = 0
 PuntajeSegundos = 0 -- acumula dt para sumar 1 punto por segundo
+Oleadas = nil
 
 --Sonidos
 musica = nil
@@ -45,39 +45,7 @@ function love.load()
 
     Camara = Camera(Jugador.x + Jugador.ancho / 2, Jugador.y + Jugador.alto / 2)
 
-    -- Spawn de enemigos por zonas: el mapa se divide en una grilla y cada zona recibe sus enemigos
-    local anchoMapa = Mapa.width * Mapa.tilewidth
-    local altoMapa = Mapa.height * Mapa.tileheight
-    local columnas, filas = 3, 2
-    local enemigosPorZona = 3
-    local margen = 100 -- distancia minima a los bordes de cada zona
-
-    local anchoZona = anchoMapa / columnas
-    local altoZona = altoMapa / filas
-
-    for fila = 0, filas - 1 do
-        for columna = 0, columnas - 1 do
-            for i = 1, enemigosPorZona do
-                local x = love.math.random(math.floor(columna * anchoZona + margen),
-                    math.floor((columna + 1) * anchoZona - margen))
-                local y = love.math.random(math.floor(fila * altoZona + margen),
-                    math.floor((fila + 1) * altoZona - margen))
-                table.insert(Enemigos, ClaseEnemigo(x, y, "assets/animaciones/enemigo.png", 120, 2))
-            end
-        end
-    end
-
-    -- Botiquines: uno en el tercio izquierdo del mapa y otro en el derecho, para que queden lejos
-    local margenBotiquin = 100
-    local tercio = anchoMapa / 3
-
-    local x1 = love.math.random(margenBotiquin, math.floor(tercio))
-    local y1 = love.math.random(margenBotiquin, altoMapa - margenBotiquin)
-    local x2 = love.math.random(math.floor(tercio * 2), anchoMapa - margenBotiquin)
-    local y2 = love.math.random(margenBotiquin, altoMapa - margenBotiquin)
-
-    table.insert(Botiquines, ClaseBotiquin("assets/botiquin.png", 1, 30, x1, y1))
-    table.insert(Botiquines, ClaseBotiquin("assets/botiquin.png", 1, 30, x2, y2))
+    Oleadas = ClaseOleadas(Mapa, Jugador, Enemigos, Botiquines)
 
     --Sonidos
     musica = love.audio.newSource("assets/sonidos/musica.mp3", "stream")
@@ -157,6 +125,19 @@ function love.update(dt)
         end
         Perdigones:Actualizar(dt)
         Mapa:update(dt)
+        Oleadas:Actualizar(dt)
+
+
+        Hud:Actualizar(Oleadas.tiempoRestante, dt)
+
+        if Jugador.vida <= 0 then
+            JuegoTerminado = true
+            Signal.emit("juego_perdido")
+        elseif Oleadas.terminado then
+            JuegoTerminado = true
+            Gane = true
+            Signal.emit("juego_ganado")
+        end
 
         -- Recorremos todos los enemigos de la lista con un for, para actualizar a cada uno
         for i, enemigo in ipairs(Enemigos) do
@@ -225,17 +206,6 @@ function love.update(dt)
             end
         end
 
-        Tiempo = Tiempo + dt
-        Hud:Actualizar(TiempoParaGanar - Tiempo, dt)
-
-        if Jugador.vida <= 0 then
-            JuegoTerminado = true
-            Signal.emit("juego_perdido")
-        elseif Tiempo >= TiempoParaGanar then
-            JuegoTerminado = true
-            Gane = true
-            Signal.emit("juego_ganado")
-        end
     end
 end
 
@@ -257,7 +227,7 @@ function Reiniciar()
 
     -- Borra los listeners: love.load() y HUD:init los vuelven a registrar
     Signal.clear("jugador_danado", "jugador_curado", "dash_usado", "dash_listo", "juego_ganado", "juego_perdido",
-        "enemigo_muerto", "puntaje_cambiado", "disparo")
+        "enemigo_muerto", "puntaje_cambiado", "disparo", "fase_cambiada")
 
     Puntaje = 0
     PuntajeSegundos = 0

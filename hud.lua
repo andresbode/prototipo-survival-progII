@@ -11,6 +11,10 @@ function HUD:init(vidaInicial, dashEspera)
     self.tiempoRestante = 0
     self.puntaje = 0
 
+    self.oleada = 0
+    self.totalOleadas = 0
+    self.fase = "oleada"
+
     -- parpadeo de la barra
     self.flashTiempo = 0
     self.flashColor = { 1, 1, 1 }
@@ -39,6 +43,12 @@ function HUD:init(vidaInicial, dashEspera)
 
     Signal.register("puntaje_cambiado", function(puntaje)
         self.puntaje = puntaje
+    end)
+
+    Signal.register("fase_cambiada", function(fase, numero, total)
+        self.fase = fase
+        self.oleada = numero
+        self.totalOleadas = total
     end)
 end
 
@@ -94,7 +104,12 @@ function HUD:Dibujar()
     love.graphics.setColor(1, 1, 1)
     love.graphics.rectangle("line", x, dashY, ancho, dashAlto)
 
-    love.graphics.print("Resiste: " .. math.floor(math.max(self.tiempoRestante, 0)), 350, 10)
+    local segundos = math.ceil(math.max(self.tiempoRestante, 0))
+    if self.fase == "pausa" then
+        love.graphics.print("Proxima oleada en: " .. segundos .. "  -  Busca un botiquin!", 350, 10)
+    else
+        love.graphics.print("Oleada " .. self.oleada .. "/" .. self.totalOleadas .. "   Resiste: " .. segundos, 350, 10)
+    end
     love.graphics.print("Score: " .. self.puntaje, 350, 30)
 end
 

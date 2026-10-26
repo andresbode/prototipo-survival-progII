@@ -3,6 +3,15 @@ local Class = require("librerias.hump-master.class")
 local ClaseAnimacion = require("animacion")
 local Signal = require("librerias.hump-master.signal")
 
+-- Cada imagen se carga una sola vez y se comparte entre todos los enemigos
+local cache = {}
+local function CargarImagen(ruta)
+    if not cache[ruta] then
+        cache[ruta] = love.graphics.newImage(ruta)
+    end
+    return cache[ruta]
+end
+
 local Enemigo = Class {}
 
 -- =================== INICIALIZACION ===================
@@ -16,7 +25,7 @@ function Enemigo:init(x, y, img, velocidad, escala)
     self.y = y
     self.velocidad = velocidad
     self.escala = escala
-    self.imagen = love.graphics.newImage(img)
+    self.imagen = CargarImagen(img)
     self.ancho = 17 * escala
     self.alto = 22 * escala
     -- Golpe propio: cada enemigo pega una vez por segundo mientras toca al jugador
@@ -32,16 +41,12 @@ function Enemigo:init(x, y, img, velocidad, escala)
         x = x + love.math.random(-150, 150),
         y = y + love.math.random(-150, 150)
     }
-    self.destino         = self.puntoB
+    self.destino = self.puntoB
 
-    self.animIzquierda = ClaseAnimacion(love.graphics.newImage("assets/animaciones/caminarIzquierdaEnemigo.png"), 17,
-        23, 4, 0.15)
-    self.animDerecha = ClaseAnimacion(love.graphics.newImage("assets/animaciones/caminarDerechaEnemigo.png"), 17, 23,
-        4, 0.15)
-    self.animAbajo = ClaseAnimacion(love.graphics.newImage("assets/animaciones/caminarAbajoEnemigo.png"), 20, 22, 4,
-        0.15)
-    self.animArriba = ClaseAnimacion(love.graphics.newImage("assets/animaciones/caminarArribaEnemigo.png"), 20, 22,
-        4, 0.15)
+    self.animIzquierda = ClaseAnimacion(CargarImagen("assets/animaciones/caminarIzquierdaEnemigo.png"), 17, 23, 4, 0.15)
+    self.animDerecha = ClaseAnimacion(CargarImagen("assets/animaciones/caminarDerechaEnemigo.png"), 17, 23, 4, 0.15)
+    self.animAbajo = ClaseAnimacion(CargarImagen("assets/animaciones/caminarAbajoEnemigo.png"), 20, 22, 4, 0.15)
+    self.animArriba = ClaseAnimacion(CargarImagen("assets/animaciones/caminarArribaEnemigo.png"), 20, 22, 4, 0.15)
 
     self.animando = false
     self.animacionActual = self.animAbajo
